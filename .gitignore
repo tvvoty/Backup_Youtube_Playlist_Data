@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+thumbnails/
+html_visual_list.html
+list.html
+videoslist.txt
