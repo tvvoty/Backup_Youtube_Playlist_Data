@@ -1,15 +1,14 @@
 # from pytube import YouTube
 from pytube import Playlist
 import requests
-
-
+import os
 import re
 
 
 class VideoObject:
     """Object for storing all videos in the playlist in a list"""
 
-    new_line_character = "\n"  # f-strings don't support back slashes so, yeah...
+    new_line_character = "\n"  # f-strings don't support back slashes so... yeah...
 
     def __init__(self, thumbnail_path, title, url, author, description):
         self.thumbnail_path = thumbnail_path
@@ -47,15 +46,25 @@ def get_playlist_name_from_user():
     return playlist_url
 
 
+def check_and_create_playlist_dir(playlist_dir_name):
+    if not os.path.isdir(f'./{playlist_dir_name}'):
+        try:
+            os.makedirs(f"./{playlist_dir_name}/thumbnails")
+        except Exception as e:
+            print(f"Something went wrong: {e}")
+
+
 def create_video_obj_list(playlist_dir_name):
     # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcIuGnq4l92ZRLY2s7rUJENV')
     # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcJT1v19mezBVRvyvDAx8oas')
-    the_playlist = get_playlist_url_from_user()
+    # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcJT1v19mezBVRvyvDAx8oas')
+    the_playlist_url = get_playlist_url_from_user()
+    the_playlist = Playlist(the_playlist_url)
     video_obj_list = []
     list_count = 0
     for video in the_playlist.videos:
         video_obj_list.append(VideoObject(
-            f"{playlist_dir_name}/thumbnails/{video.title}.jpg", video.title, the_playlist.video_urls[list_count], video.author, video.description))
+            f"thumbnails/{video.title}.jpg", video.title, the_playlist.video_urls[list_count], video.author, video.description))
         img_data = requests.get(video.thumbnail_url).content
         with open(f'{playlist_dir_name}/thumbnails/{video.title}.jpg', 'wb') as handler:
             handler.write(img_data)
@@ -73,9 +82,9 @@ def get_tamplate_html():
         return html_from_template
 
 
-def write_to_visual_list_html_file(playlist_dir_name):
+def write_to_visual_list_html_file(video_obj_list, playlist_dir_name):
     html_from_template = get_tamplate_html()
-    html_visual_list = "{playlist_dir_name}/html_visual_list.html"
+    html_visual_list = f"{playlist_dir_name}/html_visual_list.html"
     try:
         with open(html_visual_list, mode='w', encoding='utf-8') as f:
             for line in html_from_template[0:70]:
@@ -101,12 +110,15 @@ def write_vid_obj_list(video_obj_list, playlist_dir_name):
 
 def create_playlist_data_backup():
     playlist_dir_name = get_playlist_name_from_user()
+    check_and_create_playlist_dir(playlist_dir_name)
     vid_obj_list = create_video_obj_list(playlist_dir_name)
-    write_to_visual_list_html_file(playlist_dir_name)
+    write_to_visual_list_html_file(vid_obj_list, playlist_dir_name)
     write_vid_obj_list(vid_obj_list, playlist_dir_name)
 
 
 # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcIuGnq4l92ZRLY2s7rUJENV')
 # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcJT1v19mezBVRvyvDAx8oas')
+
+
 if init_promt() == "add":
     create_playlist_data_backup()
