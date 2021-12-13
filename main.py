@@ -36,7 +36,7 @@ def init_promt():
 
 
 def get_playlist_url_from_user():
-    playlist_url = input('Enter the playlist url')
+    playlist_url = input('Enter the playlist url:\n')
     return playlist_url
 
 
@@ -54,23 +54,23 @@ def check_and_create_playlist_dir(playlist_dir_name):
             print(f"Something went wrong: {e}")
 
 
-def create_video_obj_list(playlist_dir_name):
+def create_video_obj_list(playlist_dir_name, the_playlist_url, write_thumbs):
     # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcIuGnq4l92ZRLY2s7rUJENV')
     # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcJT1v19mezBVRvyvDAx8oas')
     # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcJT1v19mezBVRvyvDAx8oas')
-    the_playlist_url = get_playlist_url_from_user()
     the_playlist = Playlist(the_playlist_url)
     video_obj_list = []
     list_count = 0
     for video in the_playlist.videos:
         video_obj_list.append(VideoObject(
             f"thumbnails/{video.title}.jpg", video.title, the_playlist.video_urls[list_count], video.author, video.description))
-        img_data = requests.get(video.thumbnail_url).content
-        with open(f'{playlist_dir_name}/thumbnails/{video.title}.jpg', 'wb') as handler:
-            handler.write(img_data)
-        list_count += 1
-        if list_count == 3:
-            break
+        if write_thumbs:
+            img_data = requests.get(video.thumbnail_url).content
+            with open(f'{playlist_dir_name}/thumbnails/{video.title}.jpg', 'wb') as handler:
+                handler.write(img_data)
+            list_count += 1
+            if list_count == 3:
+                break
     return video_obj_list
 
 
@@ -99,26 +99,64 @@ def write_to_visual_list_html_file(video_obj_list, playlist_dir_name):
 
 
 def write_vid_obj_list(video_obj_list, playlist_dir_name):
-    with open("videoslist.txt", mode='w', encoding='utf-8') as f:
+    # pattern = re.compile(r'(\\|(""")'
+    # pattern.sub("", line_to_print)
+    with open(f"{playlist_dir_name}/videoslist.py", mode='w', encoding='utf-8') as f:
         obj_count = 0
         f.write('ext_vid_obj_list = [')
         for obj in video_obj_list:
             f.write(
-                f'obj{obj_count}({obj.thumbnail_path}, {obj.title}, {obj.url}, {obj.author}, {obj.description}),\n\n')
+                f'VideoObject("""{obj.thumbnail_path}""", """{obj.title}""", """{obj.url}""", """{obj.author}""", """{obj.description}"""),\n\n')
             obj_count += 1
 
 
+def write_the_playlist_url(playlist_dir_name, the_playlist_url):
+    with open(f"{playlist_dir_name}/the_playlist_url.txt", mode='w', encoding='utf-8') as f:
+        f.write(f'"{the_playlist_url}"')
+
+
 def create_playlist_data_backup():
-    playlist_dir_name = get_playlist_name_from_user()
+    playlist_dir_name = input(
+        'Enter the name for the folder the data for the playlist will be stored in:\n')
+    the_playlist_url = input('Enter the playlist url:\n')
     check_and_create_playlist_dir(playlist_dir_name)
-    vid_obj_list = create_video_obj_list(playlist_dir_name)
+    vid_obj_list = create_video_obj_list(playlist_dir_name, the_playlist_url, True)
     write_to_visual_list_html_file(vid_obj_list, playlist_dir_name)
     write_vid_obj_list(vid_obj_list, playlist_dir_name)
+    write_the_playlist_url(playlist_dir_name, the_playlist_url)
+
+
+def get_playlist_url_from_file(playlist_dir_name):
+    with open(f"{playlist_dir_name}/the_playlist_url.txt", mode='r', encoding='utf-8') as f:
+        the_playlist_url = f.read()
+    return the_playlist_url
+
+
+def get_playlist_object_from_file(playlist_dir_name):
+    modulename = playlist_dir_name + ".videoslist"
+    obj_list_module = __import__(modulename)
+    return obj_list_module.ext_vid_obj_list
+
+
+def check_playlist_integrity():
+    playlist_dir_name = input(
+        'Enter the name of playlist in:\n')
+    the_playlist_url = get_playlist_url_from_file(playlist_dir_name)
+    old_vid_obj_list = get_playlist_object_from_file(playlist_dir_name)
+    new_vid_obj_list = create_video_obj_list(playlist_dir_name, the_playlist_url, False)
+    missing_videos = []
+    for obj in old_vid_obj_list:
+        if obj not in new_vid_obj_list:
+            missing_videos.add(obj)
+    print(missing_videos)
 
 
 # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcIuGnq4l92ZRLY2s7rUJENV')
 # the_playlist = Playlist('https://www.youtube.com/playlist?list=PL-nKcT3XDGcJT1v19mezBVRvyvDAx8oas')
-
-
-if init_promt() == "add":
+mode = init_promt()
+if mode == "add":
     create_playlist_data_backup()
+elif mode == "check":
+    check_playlist_integrity()
+else:
+    print("Something went wrong.")
