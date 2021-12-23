@@ -1,5 +1,6 @@
 import os
-
+from pytube import Playlist
+import json
 #
 # os.mkdir("testfolder2/")
 # with open("testfolder2/testfile.txt", mode='w', encoding='utf-8') as template:
@@ -12,20 +13,20 @@ import os
 # print(the_playlist_url)
 
 
-def get_url():
-    with open("test.txt", mode='r', encoding='utf-8') as template:
-        html_from_template = template.read()
+#def get_url():
+    #with open("test.txt", mode='r', encoding='utf-8') as template:
+        #html_from_template = template.read()
         #print(f'html lines are: {html_lines}')
-        return html_from_template
+        #return html_from_template
 
 
-def get_tamplate_html():
-    with open("html_template.html", mode='r', encoding='utf-8') as template:
-        for line in template:
-            print(line)
-            html_from_template = template.readlines()
+#def get_tamplate_html():
+    #with open("html_template.html", mode='r', encoding='utf-8') as template:
+        #for line in template:
+            #print(line)
+            #html_from_template = template.readlines()
             #print(f'html lines are: {html_lines}')
-        return html_from_template
+        #return html_from_template
 
 
 # u = get_url()
@@ -35,6 +36,42 @@ def get_tamplate_html():
 # g = get_tamplate_html()
 #
 # print(g)
+#t = ["""Hello""", """w'o"ld""", """!"""]
+#print(t)
 
-t = ["""Hello""", """w'o"ld""", """!"""]
-print(t)
+
+
+with open(f"/home/tvvoty/LinuxAdd/GitHub/Backup_Youtube_Playlist_Data/test231121/videoslist.json", mode='r', encoding='utf-8') as f:
+        vid_objs  = json.load(f, strict=False)
+        print(vid_objs)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
